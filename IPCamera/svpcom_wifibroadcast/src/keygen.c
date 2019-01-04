@@ -32,9 +32,9 @@ int main(void)
     crypto_box_keypair(drone_publickey, drone_secretkey);
     crypto_box_keypair(gs_publickey, gs_secretkey);
 
-    if((fp = fopen("drone.key", "w")) == NULL)
+    if((fp = fopen("tx.key", "w")) == NULL)
     {
-        perror("Unable to save drone.key");
+        perror("Unable to save tx.key");
         return 1;
     }
 
@@ -42,11 +42,11 @@ int main(void)
     fwrite(gs_publickey, crypto_box_PUBLICKEYBYTES, 1, fp);
     fclose(fp);
 
-    fprintf(stderr, "Drone keypair (drone sec + gs pub) saved to drone.key\n");
+    fprintf(stderr, "Drone keypair (drone sec + gs pub) saved to tx.key\n");
 
-    if((fp = fopen("gs.key", "w")) == NULL)
+    if((fp = fopen("rx.key", "w")) == NULL)
     {
-        perror("Unable to save gs.key");
+        perror("Unable to save rx.key");
         return 1;
     }
 
@@ -54,6 +54,6 @@ int main(void)
     fwrite(drone_publickey, crypto_box_PUBLICKEYBYTES, 1, fp);
     fclose(fp);
 
-    fprintf(stderr, "GS keypair (gs sec + drone pub) saved to gs.key\n");
+    fprintf(stderr, "GS keypair (gs sec + drone pub) saved to rx.key\n");
     return 0;
 }
