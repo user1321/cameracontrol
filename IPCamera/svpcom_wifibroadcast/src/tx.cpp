@@ -39,6 +39,7 @@ extern "C"
 
 #include "wifibroadcast.hpp"
 #include "tx.hpp"
+int IsRTS;
 
 Transmitter::Transmitter(int k, int n, const string &keypair):  fec_k(k), fec_n(n), block_idx(0),
                                                                 fragment_idx(0),
@@ -126,13 +127,30 @@ void PcapTransmitter::inject_packet(const uint8_t *buf, size_t size)
     p += sizeof(radiotap_header);
 
     // ieee80211 header
-    memcpy(p, ieee80211_header, sizeof(ieee80211_header));
+    if(IsRTS == 0)
+    {
+    	memcpy(p, ieee80211_header, sizeof(ieee80211_header));
+    }
+    if(IsRTS == 2)
+    {
+        memcpy(p, ieee80211_header_rts, sizeof(ieee80211_header_rts));
+    }
+  
     p[SRC_MAC_LASTBYTE] = radio_port;
     p[DST_MAC_LASTBYTE] = radio_port;
     p[FRAME_SEQ_LB] = ieee80211_seq & 0xff;
     p[FRAME_SEQ_HB] = (ieee80211_seq >> 8) & 0xff;
     ieee80211_seq += 16;
-    p += sizeof(ieee80211_header);
+  
+   
+    if(IsRTS == 0)
+    {
+	      p += sizeof(ieee80211_header);
+    }
+    if(IsRTS == 2)
+    {
+	      p += sizeof(ieee80211_header_rts);
+    }
 
     // FEC data
     memcpy(p, buf, size);
@@ -287,10 +305,11 @@ int main(int argc, char * const *argv)
     int short_gi = 1;
     int stbc = 1;
     int mcs_index = 1;
+    IsRTS=0;
 
     string keypair = "tx.key";
 
-    while ((opt = getopt(argc, argv, "K:k:n:u:r:p:B:G:S:M:")) != -1) {
+    while ((opt = getopt(argc, argv, "K:k:n:u:r:p:B:G:S:M:t:")) != -1) {
         switch (opt) {
         case 'K':
             keypair = optarg;
@@ -318,6 +337,9 @@ int main(int argc, char * const *argv)
             break;
         case 'M':
             mcs_index = atoi(optarg);
+            break;
+        case 't':
+	          IsRTS = atoi(optarg);
             break;
         default: /* '?' */
         show_usage:
